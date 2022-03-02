@@ -1,4 +1,4 @@
-const express = require('express');
+const express = require("express");
 const app = express();
 const PORT = 8080;
 
@@ -9,9 +9,14 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
-app.get('/', (req, res) => {
-  res.send('hello');
+app.get("/", (req, res) => {
+  res.send("hello");
 });
+
+app.get("/urls", (req, res) => {
+  const templateVars = { urls : urlDatabase };
+  res.render("urls_index", templateVars)
+})
 
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
