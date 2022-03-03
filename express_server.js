@@ -7,6 +7,19 @@ app.use(bodyParser.urlencoded({extended: true}));
 
 app.set("view engine", "ejs");
 
+//function that returns a string of 6 random alphanumeric characters:
+const generateRandomString = function(max) {
+  let randomString = '';
+  let characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+
+  for ( let i = 0; i < max; i++ ) {
+    randomString += characters.charAt(Math.floor(Math.random()*characters.length));
+ }
+ return randomString;
+}
+
+
+
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
