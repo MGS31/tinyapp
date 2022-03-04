@@ -22,7 +22,6 @@ const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
-console.log(urlDatabase);
 
 app.get("/", (req, res) => {
   res.send("hello");
@@ -44,6 +43,12 @@ app.post("/urls", (req, res) => {
   res.redirect(`/urls/${shortURL}`);
 });
 
+app.post("/urls/:id", (req, res) => {
+  const shortURL = req.params.id;
+  const longURL = req.body["longURL"];
+  urlDatabase[shortURL] = longURL;
+  res.redirect("/urls")
+})
 
 app.get("/urls/:shortURL", (req, res) => {
   const templateVars = { 
