@@ -26,10 +26,20 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+const users = {
+  "userID": {
+    id: "userID",
+    email: "user@example.com",
+    password: "userpassword"
+  }
+};
+
 // get requests:
 app.get("/register", (req, res) => {
   const templateVars = { 
-    username : req.cookies['username']
+    username : req.cookies['username'],
+    userID : req.cookies["userID"],
+    userEmail: req.cookies["userEmail"]
   };
   res.render("urls_register", templateVars);
 });
@@ -37,14 +47,18 @@ app.get("/register", (req, res) => {
 app.get("/urls", (req, res) => {
   const templateVars = { 
     urls : urlDatabase,
-    username : req.cookies['username']
+    username : req.cookies['username'],
+    userID : req.cookies["userID"],
+    userEmail: req.cookies["userEmail"]
   };
   res.render("urls_index", templateVars)
 })
 
 app.get("/urls/new", (req, res) => {
   const templateVars = { 
-    username : req.cookies['username']
+    username : req.cookies['username'],
+    userID : req.cookies["userID"],
+    userEmail: req.cookies["userEmail"]
   };
   res.render("urls_new", templateVars);
 });
@@ -53,7 +67,10 @@ app.get("/urls/:shortURL", (req, res) => {
   const templateVars = { 
     shortURL: req.params.shortURL, 
     longURL: urlDatabase[req.params.shortURL],
-    username : req.cookies['username']}
+    username : req.cookies["username"],
+    userID : req.cookies["userID"],
+    userEmail: req.cookies["userEmail"]
+  }
   res.render("urls_show", templateVars);
 });
 
@@ -74,6 +91,16 @@ app.get("/urls.json", (req, res) => {
 
 
 // post requests:
+app.post("/register", (req, res) => {
+  const id = generateRandomString(6);
+  const email = req.body["email"];
+  const password = req.body["password"];
+  users[id] = { id, email, password };
+  res.cookie("userID", users[id].id);
+  res.cookie("userEmail", users[id].email);
+  res.redirect(`/urls`);
+});
+
 app.post("/login", (req, res) => {  
   const username = req.body["username"];
   res.cookie('username', username);
@@ -81,8 +108,8 @@ app.post("/login", (req, res) => {
 });
 
 app.post("/logout", (req, res) => {  
-  const username = req.body["username"];
-  res.clearCookie('username', username);
+  res.clearCookie("userID");
+  res.clearCookie("userEmail");
   res.redirect("/urls");
 });
 
