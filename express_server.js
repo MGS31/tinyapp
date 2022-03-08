@@ -26,8 +26,17 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+const checkEmail = function(email) {
+  for (const user in users) {
+    if (users[user].email === email) {
+      return true;
+    }
+  }
+  return false;
+ };
+
 const users = {
-  "userID": {
+  userID: {
     id: "userID",
     email: "user@example.com",
     password: "userpassword"
@@ -38,8 +47,7 @@ const users = {
 app.get("/register", (req, res) => {
   const templateVars = { 
     username : req.cookies['username'],
-    userID : req.cookies["userID"],
-    userEmail: req.cookies["userEmail"]
+    user : users[req.cookies["user_id"]],
   };
   res.render("urls_register", templateVars);
 });
@@ -48,17 +56,16 @@ app.get("/urls", (req, res) => {
   const templateVars = { 
     urls : urlDatabase,
     username : req.cookies['username'],
-    userID : req.cookies["userID"],
-    userEmail: req.cookies["userEmail"]
+    user : users[req.cookies["user_id"]],
   };
+  console.log(users);
   res.render("urls_index", templateVars)
 })
 
 app.get("/urls/new", (req, res) => {
   const templateVars = { 
     username : req.cookies['username'],
-    userID : req.cookies["userID"],
-    userEmail: req.cookies["userEmail"]
+    user : users[req.cookies["user_id"]],
   };
   res.render("urls_new", templateVars);
 });
@@ -68,8 +75,7 @@ app.get("/urls/:shortURL", (req, res) => {
     shortURL: req.params.shortURL, 
     longURL: urlDatabase[req.params.shortURL],
     username : req.cookies["username"],
-    userID : req.cookies["userID"],
-    userEmail: req.cookies["userEmail"]
+    user : users[req.cookies["user_id"]],
   }
   res.render("urls_show", templateVars);
 });
@@ -93,12 +99,21 @@ app.get("/urls.json", (req, res) => {
 // post requests:
 app.post("/register", (req, res) => {
   const id = generateRandomString(6);
-  const email = req.body["email"];
-  const password = req.body["password"];
-  users[id] = { id, email, password };
-  res.cookie("userID", users[id].id);
-  res.cookie("userEmail", users[id].email);
-  res.redirect(`/urls`);
+  const email = req.body["email"].trim();
+  const password = req.body["password"].trim();
+  if (email !== '' && password !== '') {
+    if (!checkEmail(email, users)) {
+      users[id] = { id, email, password };
+      res.cookie("user_ID", id);
+      res.redirect(`/urls`);
+    } else {
+      res.statusCode = 400;
+      res.send("Email already in use!");
+    }
+  } else {
+    res.statusCode = 400,
+    res.send("Status Code = 400: No email or password");
+  }
 });
 
 app.post("/login", (req, res) => {  
@@ -108,8 +123,7 @@ app.post("/login", (req, res) => {
 });
 
 app.post("/logout", (req, res) => {  
-  res.clearCookie("userID");
-  res.clearCookie("userEmail");
+  res.clearCookie("user_ID");
   res.redirect("/urls");
 });
 
