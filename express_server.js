@@ -43,6 +43,15 @@ const users = {
   }
 };
 
+const getUserByEmail = function(email) {
+  for (const user in users) {
+    if (users[user].email === email) {
+      return users[user];
+    }
+  }
+};
+
+
 // get requests:
 app.get("/register", (req, res) => {
   const templateVars = { 
@@ -120,13 +129,30 @@ app.post("/register", (req, res) => {
 });
 
 app.post("/login", (req, res) => {  
-  const email = req.body["email"];
-  res.cookie('username', email);
+  const inputEmail = req.body.email;
+  const inputPass = req.body.password;
+
+  if (!inputEmail || !inputPass) {
+    res.statusCode = 403;
+    res.send("No Email or password were provided")
+  }
+  const user = getUserByEmail(inputEmail);
+  if (!user) {
+    res.statusCode = 403;
+    res.send("No user found in database");
+  }
+  if (user.password !== inputPass) {
+    res.statusCode = 403;
+    res.send("Email or password incorrect please try again");
+  }
+  const user_id = user.id;
+  res.cookie("user_id", user_id);
   res.redirect("/urls");
+
 });
 
 app.post("/logout", (req, res) => {  
-  res.clearCookie("user_ID");
+  res.clearCookie("user_id");
   res.redirect("/urls");
 });
 
