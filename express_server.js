@@ -22,8 +22,14 @@ const generateRandomString = function(max) {
 }
 
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  "b2xVn2": {
+    longURL: "http://www.lighthouselabs.ca",
+    userID: "aJ48lW"
+  },
+  "9sm5xK": { 
+    longURL: "http://www.google.com",
+    userID: "aJ48lW"
+  }
 };
 
 const checkEmail = function(email) {
@@ -68,11 +74,10 @@ app.get("/login", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  const templateVars = { 
+  const templateVars = {  
     urls : urlDatabase,
     user : users[req.cookies["user_id"]],
   };
-  console.log(users);
   res.render("urls_index", templateVars)
 })
 
@@ -88,9 +93,11 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.get("/urls/:shortURL", (req, res) => {
+  const shortURL = req.params.shortURL;
+  const longURL = urlDatabase[shortURL].longURL;
   const templateVars = { 
-    shortURL: req.params.shortURL, 
-    longURL: urlDatabase[req.params.shortURL],
+    shortURL: shortURL, 
+    longURL: longURL,
     user : users[req.cookies["user_id"]],
   }
   res.render("urls_show", templateVars);
@@ -103,8 +110,12 @@ app.get ("/urls/:shortURL/edit", (req, res) => {
 
 app.get("/u/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
-  const longURL = urlDatabase[shortURL];
-  res.redirect(longURL);
+  const longURL = urlDatabase[shortURL].longURL;
+  if (!shortURL) {
+    return res.status(400).send("Unauthorised Request");
+  } else {
+    res.redirect(longURL);
+  }
 });
 
 app.get("/urls.json", (req, res) => {
@@ -162,7 +173,9 @@ app.post("/urls", (req, res) => {
   if (req.cookies["user_id"]) {
   const shortURL = generateRandomString(6);
   const longURL = req.body["longURL"];
-  urlDatabase[shortURL] = longURL;
+  const userID = req.cookies["user_id"];
+  urlDatabase[shortURL] = { longURL, userID };
+  console.log(urlDatabase);
   res.redirect(`/urls/${shortURL}`);
   } else {
     return res.status(400).send("Unauthorised Request");
