@@ -57,6 +57,15 @@ const getUserByEmail = function(email) {
   }
 };
 
+const urlsForUser = function(id) {
+  let userURLS = {}
+  for (const url in urlDatabase) {
+    if (urlDatabase[url].userID === id) {
+      userURLS[url] = urlDatabase[url];
+    }
+  }
+  return userURLS;
+};
 
 // get requests:
 app.get("/register", (req, res) => {
