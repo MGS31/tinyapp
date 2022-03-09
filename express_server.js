@@ -80,7 +80,11 @@ app.get("/urls/new", (req, res) => {
   const templateVars = { 
     user : users[req.cookies["user_id"]],
   };
-  res.render("urls_new", templateVars);
+  if (req.cookies["user_id"]) {
+    res.render("urls_new", templateVars);
+  } else {
+  res.render("url_login", templateVars);
+  }
 });
 
 app.get("/urls/:shortURL", (req, res) => {
@@ -119,12 +123,10 @@ app.post("/register", (req, res) => {
       res.cookie("user_ID", id);
       res.redirect(`/urls`);
     } else {
-      res.statusCode = 400;
-      res.send("Email already in use!");
+      return res.status(400).send("Invalid Credentials!");
     }
   } else {
-    res.statusCode = 400,
-    res.send("Status Code = 400: No email or password");
+    return res.status(400).send("Invalid Credentials!");
   }
 });
 
@@ -134,12 +136,12 @@ app.post("/login", (req, res) => {
 
   if (!inputEmail || !inputPass) {
     res.statusCode = 403;
-    res.send("No Email or password were provided")
+    res.send("Invalid Credentials")
   }
   const user = getUserByEmail(inputEmail);
   if (!user) {
     res.statusCode = 403;
-    res.send("No user found in database");
+    res.send("Invalid Credentials");
   }
   if (user.password !== inputPass) {
     res.statusCode = 403;
@@ -157,10 +159,14 @@ app.post("/logout", (req, res) => {
 });
 
 app.post("/urls", (req, res) => {
+  if (req.cookies["user_id"]) {
   const shortURL = generateRandomString(6);
   const longURL = req.body["longURL"];
   urlDatabase[shortURL] = longURL;
   res.redirect(`/urls/${shortURL}`);
+  } else {
+    return res.status(400).send("Unauthorised Request");
+  }
 });
 
 app.post("/urls/:id", (req, res) => {
