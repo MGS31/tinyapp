@@ -83,11 +83,15 @@ app.get("/login", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  const templateVars = {  
-    urls : urlDatabase,
-    user : users[req.cookies["user_id"]],
-  };
-  res.render("urls_index", templateVars)
+  const userURL = urlsForUser(req.cookies["user_id"]);
+  if (req.cookies["user_id"]) {
+    const templateVars = {  
+      urls : userURL,
+      user : users[req.cookies["user_id"]],
+    };
+    res.render("urls_index", templateVars)
+  }
+  res.status(400).send("You need to login or register to access this page");
 })
 
 app.get("/urls/new", (req, res) => {
@@ -102,6 +106,7 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.get("/urls/:shortURL", (req, res) => {
+  const userURL = urlsForUser(req.cookies["user_id"]);
   const shortURL = req.params.shortURL;
   const longURL = urlDatabase[shortURL].longURL;
   const templateVars = { 
@@ -109,12 +114,23 @@ app.get("/urls/:shortURL", (req, res) => {
     longURL: longURL,
     user : users[req.cookies["user_id"]],
   }
-  res.render("urls_show", templateVars);
+  if (!req.cookies["user_id"]) {
+    res.status(400).send("Unauthorised Request");
+  }
+  if (req.cookies["user_id"] === userURL) {
+    res.render("urls_show", templateVars);
+  } else {
+    res.status(400).send("Unauthorised Request");
+  }
 });
 
 app.get ("/urls/:shortURL/edit", (req, res) => {
   const shortURL = req.params.shortURL;
+  if (req.cookies["user_id"]) {
   res.redirect(`/urls/${shortURL}`);
+  } else {
+  return res.status(400).send("Unauthorised Request");
+}
 });
 
 app.get("/u/:shortURL", (req, res) => {
@@ -155,17 +171,14 @@ app.post("/login", (req, res) => {
   const inputPass = req.body.password;
 
   if (!inputEmail || !inputPass) {
-    res.statusCode = 403;
-    res.send("Invalid Credentials")
+    return res.status(403).sendsend("Invalid Credentials")
   }
   const user = getUserByEmail(inputEmail);
   if (!user) {
-    res.statusCode = 403;
-    res.send("Invalid Credentials");
+    return res.status(403).sendsend("Invalid Credentials");
   }
   if (user.password !== inputPass) {
-    res.statusCode = 403;
-    res.send("Email or password incorrect please try again");
+    return res.status(403).send("Invalid Credentials");
   }
   const user_id = user.id;
   res.cookie("user_id", user_id);
@@ -184,7 +197,6 @@ app.post("/urls", (req, res) => {
   const longURL = req.body["longURL"];
   const userID = req.cookies["user_id"];
   urlDatabase[shortURL] = { longURL, userID };
-  console.log(urlDatabase);
   res.redirect(`/urls/${shortURL}`);
   } else {
     return res.status(400).send("Unauthorised Request");
@@ -199,9 +211,13 @@ app.post("/urls/:id", (req, res) => {
 })
 
 app.post("/urls/:shortURL/delete", (req, res) => {
+  if (req.cookies["user_id"]) {
   const shortURL = req.params.shortURL;
   delete urlDatabase[shortURL];
   res.redirect("/urls");
+} else {
+  return res.status(400).send("Unauthorised Request");
+}
 });
 
 // port listening confirmation
