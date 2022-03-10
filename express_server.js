@@ -3,6 +3,7 @@ const app = express();
 const PORT = 8080;
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
+const bcrypt = require("bcryptjs");
 
 app.use(bodyParser.urlencoded({extended: true}));
 
@@ -84,14 +85,11 @@ app.get("/login", (req, res) => {
 
 app.get("/urls", (req, res) => {
   const userURL = urlsForUser(req.cookies["user_id"]);
-  if (req.cookies["user_id"]) {
     const templateVars = {  
       urls : userURL,
       user : users[req.cookies["user_id"]],
     };
     res.render("urls_index", templateVars)
-  }
-  res.status(400).send("You need to login or register to access this page");
 })
 
 app.get("/urls/new", (req, res) => {
@@ -153,9 +151,11 @@ app.post("/register", (req, res) => {
   const id = generateRandomString(6);
   const email = req.body["email"].trim();
   const password = req.body["password"].trim();
+  const hashedPassword = bcrypt.hashSync(password, 10);
   if (email !== '' && password !== '') {
     if (!checkEmail(email, users)) {
-      users[id] = { id, email, password };
+      users[id] = { id, email, password : hashedPassword };
+      console.log(users);
       res.cookie("user_ID", id);
       res.redirect(`/urls`);
     } else {
@@ -171,16 +171,17 @@ app.post("/login", (req, res) => {
   const inputPass = req.body.password;
 
   if (!inputEmail || !inputPass) {
-    return res.status(403).sendsend("Invalid Credentials")
+    return res.status(403).send("Invalid Credentials")
   }
-  const user = getUserByEmail(inputEmail);
-  if (!user) {
-    return res.status(403).sendsend("Invalid Credentials");
-  }
-  if (user.password !== inputPass) {
+  const userID = getUserByEmail(inputEmail);
+  const password = userID.password;
+  if (!userID) {
     return res.status(403).send("Invalid Credentials");
   }
-  const user_id = user.id;
+  if (!bcrypt.compareSync(inputPass, password)) {
+    return res.status(403).send("Invalid Credentials");
+  }
+  const user_id = userID.id;
   res.cookie("user_id", user_id);
   res.redirect("/urls");
 
