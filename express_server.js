@@ -5,6 +5,7 @@ const bodyParser = require("body-parser");
 // const cookieParser = require("cookie-parser");
 const bcrypt = require("bcryptjs");
 const cookieSession = require('cookie-session');
+const getUserByEmail = require('./helpers');
 
 app.use(bodyParser.urlencoded({extended: true}));
 
@@ -56,14 +57,6 @@ const users = {
     id: "userID",
     email: "user@example.com",
     password: "userpassword"
-  }
-};
-
-const getUserByEmail = function(email) {
-  for (const user in users) {
-    if (users[user].email === email) {
-      return users[user];
-    }
   }
 };
 
@@ -182,7 +175,7 @@ app.post("/login", (req, res) => {
   if (!inputEmail || !inputPass) {
     return res.status(403).send("Invalid Credentials!")
   };
-  const userID = getUserByEmail(inputEmail);
+  const userID = getUserByEmail(inputEmail, users);
   const password = userID.password;
   if (!userID) {
     return res.status(403).send("Invalid Credentials!");
