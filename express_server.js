@@ -17,40 +17,21 @@ app.use(cookieSession({
 
   // Cookie Options
   maxAge: 24 * 60 * 60 * 1000 // 24 hours
-}))
+}));
 
 app.set("view engine", "ejs");
 
-// global functions and objects:
-const generateRandomString = function(max) {
-  let randomString = '';
-  let characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-
-  for ( let i = 0; i < max; i++ ) {
-    randomString += characters.charAt(Math.floor(Math.random()*characters.length));
- }
- return randomString;
-}
-
+//global Objects:
 const urlDatabase = {
   "b2xVn2": {
     longURL: "http://www.lighthouselabs.ca",
     userID: "aJ48lW"
   },
-  "9sm5xK": { 
+  "9sm5xK": {
     longURL: "http://www.google.com",
     userID: "aJ48lW"
   }
 };
-
-const checkEmail = function(email) {
-  for (const user in users) {
-    if (users[user].email === email) {
-      return true;
-    }
-  }
-  return false;
- };
 
 const users = {
   userID: {
@@ -60,8 +41,29 @@ const users = {
   }
 };
 
+// global functions
+const generateRandomString = function(max) {
+  let randomString = '';
+  let characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+
+  for (let i = 0; i < max; i++) {
+    randomString += characters.charAt(Math.floor(Math.random() * characters.length));
+  }
+  return randomString;
+};
+
+const checkEmail = function(email) {
+  for (const user in users) {
+    if (users[user].email === email) {
+      return true;
+    }
+  }
+  return false;
+};
+
 const urlsForUser = function(id) {
-  let userURLS = {}
+  let userURLS = {};
+
   for (const url in urlDatabase) {
     if (urlDatabase[url].userID === id) {
       userURLS[url] = urlDatabase[url];
@@ -73,14 +75,14 @@ const urlsForUser = function(id) {
 
 // get requests:
 app.get("/register", (req, res) => {
-  const templateVars = { 
+  const templateVars = {
     user : users[req.session.user_id],
   };
   res.render("urls_register", templateVars);
 });
 
 app.get("/login", (req, res) => {
-  const templateVars = { 
+  const templateVars = {
     user : users[req.session.user_id],
   };
   res.render("url_login", templateVars);
@@ -88,51 +90,52 @@ app.get("/login", (req, res) => {
 
 app.get("/urls", (req, res) => {
   const userURL = urlsForUser(req.session.user_id);
-    const templateVars = {  
-      urls : userURL,
-      user : users[req.session.user_id],
-    };
-    res.render("urls_index", templateVars)
+  const templateVars = {
+    urls : userURL,
+    user : users[req.session.user_id],
+  };
+  res.render("urls_index", templateVars);
 });
 
 app.get("/urls/new", (req, res) => {
-  const templateVars = { 
+  const templateVars = {
     user : users[req.session.user_id]
   };
   if (req.session.user_id) {
-    console.log("Here!");
     res.render("urls_new", templateVars);
   } else {
-  res.render("url_login", templateVars);
-  };
+    res.render("url_login", templateVars);
+  }
 });
 
 app.get("/urls/:shortURL", (req, res) => {
-  const userURL = urlsForUser(req.session.user_id);
-  const shortURL = req.params.shortURL;
-  const longURL = urlDatabase[shortURL].longURL;
-  const templateVars = { 
-    shortURL: shortURL, 
-    longURL: longURL,
-    user : users[req.session.user_id],
-  };
-  if (req.session.user_id === undefined) {
-    res.status(400).send("Unauthorised Request");
-  };
-  if (req.session.user_id === userURL[shortURL].userID) {
-    res.render("urls_show", templateVars);
-  } else {
-    res.status(400).send("Unauthorised Request");
-  };
-});
+  if (!req.session.user_id) {
+    return res.status(400).send("Not Logged In");
+  }
 
-app.get ("/urls/:shortURL/edit", (req, res) => {
+  const id = req.session.user_id;
+  const shortURL = req.params.shortURL;
+  const url = urlDatabase[shortURL];
+  const templateVars = {
+    shortURL: shortURL,
+    longURL: url.longURL,
+    user : users[id],
+  };
+
+  if (!url || id !== url.userID) {
+    res.status(400).send("Unauthorised Request");
+  } else {
+    res.render("urls_show", templateVars);
+  }
+});
+  
+app.get("/urls/:shortURL/edit", (req, res) => {
   const shortURL = req.params.shortURL;
   if (req.session.user_id) {
-  res.redirect(`/urls/${shortURL}`);
+    res.redirect(`/urls/${shortURL}`);
   } else {
-  return res.status(400).send("Unauthorised Request");
-};
+    return res.status(400).send("Unauthorised Request");
+  }
 });
 
 app.get("/u/:shortURL", (req, res) => {
@@ -142,7 +145,7 @@ app.get("/u/:shortURL", (req, res) => {
     return res.status(400).send("Unauthorised Request");
   } else {
     res.redirect(longURL);
-  };
+  }
 });
 
 app.get("/urls.json", (req, res) => {
@@ -163,66 +166,67 @@ app.post("/register", (req, res) => {
       res.redirect(`/urls`);
     } else {
       return res.status(400).send("Invalid Credentials!");
-    };
+    }
   } else {
     return res.status(400).send("Invalid Credentials!");
-  };
+  }
 });
 
-app.post("/login", (req, res) => {  
+app.post("/login", (req, res) => {
   const inputEmail = req.body.email;
   const inputPass = req.body.password;
   if (!inputEmail || !inputPass) {
-    return res.status(403).send("Invalid Credentials!")
-  };
+    return res.status(403).send("Invalid Credentials!");
+  }
   const userID = getUserByEmail(inputEmail, users);
-  const password = userID.password;
   if (!userID) {
     return res.status(403).send("Invalid Credentials!");
-  };
+  }
+  const password = userID.password;
   if (!bcrypt.compareSync(inputPass, password)) {
     return res.status(403).send("Invalid Credentials!");
-  };
+  }
   const user_id = userID.id;
   req.session.user_id = user_id;
   res.redirect("/urls");
 });
 
-app.post("/logout", (req, res) => {  
+app.post("/logout", (req, res) => {
   req.session = null;
   res.redirect("/urls");
 });
 
 app.post("/urls", (req, res) => {
   if (req.session.user_id) {
-  const shortURL = generateRandomString(6);
-  const longURL = req.body["longURL"];
-  const userID = req.session.user_id;
-  urlDatabase[shortURL] = { longURL, userID };
-  res.redirect(`/urls/${shortURL}`);
+    const shortURL = generateRandomString(6);
+    const longURL = req.body["longURL"];
+    const userID = req.session.user_id;
+    urlDatabase[shortURL] = { longURL, userID };
+    res.redirect(`/urls/${shortURL}`);
   } else {
     return res.status(400).send("Unauthorised Request");
-  };
+  }
 });
 
 app.post("/urls/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
   const longURL = req.body["longURL"];
-  if (req.session.user_id) {
-  urlDatabase[shortURL].longURL = longURL;
-  } else {
+  if (!req.session.user_id) {
     return res.status(400).send("Unauthorised Request");
-  };
+  } else {
+    urlDatabase[shortURL].longURL = longURL;
+    res.redirect("/urls");
+  }
 });
 
 app.post("/urls/:shortURL/delete", (req, res) => {
   if (req.session.user_id) {
-  const shortURL = req.params.shortURL;
-  delete urlDatabase[shortURL];
-  res.redirect("/urls");
-} else {
-  return res.status(400).send("Unauthorised Request");
-};
+    const shortURL = req.params.shortURL;
+    delete urlDatabase[shortURL];
+    res.redirect("/urls");
+  } else {
+    return res.status(400).send("Unauthorised Request");
+  }
 });
 
 // port listening confirmation
