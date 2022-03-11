@@ -123,13 +123,12 @@ app.get("/urls/:shortURL", (req, res) => {
     longURL: longURL,
     user : users[req.session.user_id],
   };
-  if (!req.session.user_id) {
+  if (req.session.user_id === undefined) {
     res.status(400).send("Unauthorised Request");
   };
   if (req.session.user_id === userURL[shortURL].userID) {
     res.render("urls_show", templateVars);
   } else {
-    console.log("Test: ", urlsForUser(req.session.user_id));
     res.status(400).send("Unauthorised Request");
   };
 });
@@ -197,8 +196,7 @@ app.post("/login", (req, res) => {
 });
 
 app.post("/logout", (req, res) => {  
-  // set session to null
-  res.clearCookie("user_id");
+  req.session = null;
   res.redirect("/urls");
 });
 
