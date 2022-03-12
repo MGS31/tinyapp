@@ -2,14 +2,11 @@ const express = require("express");
 const app = express();
 const PORT = 8080;
 const bodyParser = require("body-parser");
-// const cookieParser = require("cookie-parser");
 const bcrypt = require("bcryptjs");
 const cookieSession = require('cookie-session');
-const getUserByEmail = require('./helpers');
+const { getUserByEmail, generateRandomString, checkEmail, urlsForUser } = require("./helpers");
 
 app.use(bodyParser.urlencoded({extended: true}));
-
-// app.use(cookieParser());
 
 app.use(cookieSession({
   name: 'session',
@@ -41,39 +38,14 @@ const users = {
   }
 };
 
-// global functions
-const generateRandomString = function(max) {
-  let randomString = '';
-  let characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-
-  for (let i = 0; i < max; i++) {
-    randomString += characters.charAt(Math.floor(Math.random() * characters.length));
-  }
-  return randomString;
-};
-
-const checkEmail = function(email) {
-  for (const user in users) {
-    if (users[user].email === email) {
-      return true;
-    }
-  }
-  return false;
-};
-
-const urlsForUser = function(id) {
-  let userURLS = {};
-
-  for (const url in urlDatabase) {
-    if (urlDatabase[url].userID === id) {
-      userURLS[url] = urlDatabase[url];
-    }
-  }
-  return userURLS;
-};
-
-
 // get requests:
+app.get("/", (req, res) => {
+  const templateVars = {
+    user : users[req.session.user_id],
+  };
+  res.render("url_login", templateVars);
+});
+
 app.get("/register", (req, res) => {
   const templateVars = {
     user : users[req.session.user_id],

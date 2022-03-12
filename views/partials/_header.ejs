@@ -12,15 +12,15 @@
     </div>
       <% if (user) { %>
         <a class="nav-item nav-link" style= "color:whitesmoke">Logged in as: <%= user.email %>
-          </a>
-            <form method="POST" action="/logout">
+        </a>
+          <form method="POST" action="/logout">
               <button type="submit" class="btn btn-outline-light">Logout</button>
-            </form>
-         <% } else { %>
-            <div class="navbar-nav">
-              <a class="nav-item nav-link" href="/login">Login</a> 
-              <a class="nav-item nav-link" href="/register">Register</a>
-            </div>  
-         <% } %>
+          </form>
+        <% } else { %>
+          <div class="navbar-nav">
+            <a class="nav-item nav-link" href="/login">Login</a> 
+            <a class="nav-item nav-link" href="/register">Register</a>
+          </div>  
+      <% } %>
   </nav>
 </header>
