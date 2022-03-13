@@ -4,7 +4,7 @@ const PORT = 8080;
 const bodyParser = require("body-parser");
 const bcrypt = require("bcryptjs");
 const cookieSession = require('cookie-session');
-const { getUserByEmail, generateRandomString, checkEmail, urlsForUser } = require("./helpers");
+const { getUserByEmail, generateRandomString, checkEmail, urlsForUser, urlDatabase, users } = require("./helpers");
 
 app.use(bodyParser.urlencoded({extended: true}));
 
@@ -19,24 +19,24 @@ app.use(cookieSession({
 app.set("view engine", "ejs");
 
 //global Objects:
-const urlDatabase = {
-  "b2xVn2": {
-    longURL: "http://www.lighthouselabs.ca",
-    userID: "aJ48lW"
-  },
-  "9sm5xK": {
-    longURL: "http://www.google.com",
-    userID: "aJ48lW"
-  }
-};
+// const urlDatabase = {
+//   "b2xVn2": {
+//     longURL: "http://www.lighthouselabs.ca",
+//     userID: "aJ48lW"
+//   },
+//   "9sm5xK": {
+//     longURL: "http://www.google.com",
+//     userID: "aJ48lW"
+//   }
+// };
 
-const users = {
-  userID: {
-    id: "userID",
-    email: "user@example.com",
-    password: "userpassword"
-  }
-};
+// const users = {
+//   userID: {
+//     id: "userID",
+//     email: "user@example.com",
+//     password: "userpassword"
+//   }
+// };
 
 // get requests:
 app.get("/", (req, res) => {
@@ -61,11 +61,14 @@ app.get("/login", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  const userURL = urlsForUser(req.session.user_id);
+  const id = req.session.user_id;
+  const userURL = urlsForUser(id, urlDatabase);
   const templateVars = {
     urls : userURL,
     user : users[req.session.user_id],
   };
+  console.log(req.session.user_id);
+  console.log(urlsForUser(req.session.user_id));
   res.render("urls_index", templateVars);
 });
 

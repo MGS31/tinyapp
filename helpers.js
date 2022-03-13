@@ -1,3 +1,22 @@
+const urlDatabase = {
+  "b2xVn2": {
+    longURL: "http://www.lighthouselabs.ca",
+    userID: "aJ48lW"
+  },
+  "9sm5xK": {
+    longURL: "http://www.google.com",
+    userID: "aJ48lW"
+  }
+};
+
+const users = {
+  userID: {
+    id: "userID",
+    email: "user@example.com",
+    password: "userpassword"
+  }
+};
+
 /**
  * Pulls user ID of logged in user by their email.
  * @param {string} email
@@ -63,5 +82,7 @@ module.exports = {
   getUserByEmail,
   generateRandomString,
   checkEmail,
-  urlsForUser
+  urlsForUser,
+  urlDatabase,
+  users
 };
